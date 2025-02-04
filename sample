@@ -8,19 +8,21 @@ prebuilt-businessCard:analyze	Extracts name, company, email, phone, address from
 prebuilt-document:analyze	Extracts text, tables, key-value pairs, structure	General documents (PDF, DOCX, Images)
 
 
-import openai
+from azure.ai.generative.openai import ChatClient
+from azure.core.credentials import AzureKeyCredential
 
 # Azure OpenAI Configurations
-AZURE_OPENAI_ENDPOINT = "https://YOUR_AZURE_OPENAI_ENDPOINT.openai.azure.com/"
+AZURE_OPENAI_ENDPOINT = "https://YOUR_AZURE_OPENAI_ENDPOINT.openai.azure.com"
 API_KEY = "YOUR_API_KEY"
-DEPLOYMENT_NAME = "gpt-4o-mini"  # Set your model's deployment name
-API_VERSION = "2024-02-01"  # Adjust as per your Azure OpenAI version
+DEPLOYMENT_NAME = "gpt-4o-mini"  # Your deployed model name
+API_VERSION = "2024-02-01"  # Azure OpenAI API version
 
-# Create a Chat Completion Request
-response = openai.ChatCompletion.create(
-    engine=DEPLOYMENT_NAME,  # Use your deployment name
-    api_key=API_KEY,
-    base_url=f"{AZURE_OPENAI_ENDPOINT}/openai/deployments/{DEPLOYMENT_NAME}/chat/completions?api-version={API_VERSION}",
+# Initialize the Chat Client
+client = ChatClient(endpoint=AZURE_OPENAI_ENDPOINT, credential=AzureKeyCredential(API_KEY))
+
+# Send a chat request
+response = client.complete(
+    deployment=DEPLOYMENT_NAME,
     messages=[
         {"role": "system", "content": "You are a helpful assistant."},
         {"role": "user", "content": "What is the capital of France?"}
@@ -29,4 +31,5 @@ response = openai.ChatCompletion.create(
 )
 
 # Print the response
-print(response["choices"][0]["message"]["content"])
+print(response.choices[0].message.content)
+
