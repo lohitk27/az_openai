@@ -1,0 +1,8 @@
+Model Name	Purpose	Best For	Supported Files
+prebuilt-read	OCR	Extracting plain text	PDF, PNG, JPEG, TIFF, BMP
+prebuilt-layout	Extract text, tables, headers, footers	Scanned documents, forms	PDF, PNG, JPEG, TIFF, BMP
+prebuilt-document	Full document processing (OCR + tables + key-values)	General documents	PDF, PNG, JPEG, TIFF, BMP
+prebuilt-receipt	Extracts receipt data (merchant, total, tax, date, items)	Bills, invoices, receipts	PDF, PNG, JPEG, TIFF, BMP
+prebuilt-invoice:analyze	Extracts invoice number, date, amounts, vendor details, tax, line items	Invoices (PDF, JPG, PNG, TIFF, DOCX)
+prebuilt-businessCard:analyze	Extracts name, company, email, phone, address from business cards	Business cards (PDF, JPG, PNG, TIFF)
+prebuilt-document:analyze	Extracts text, tables, key-value pairs, structure	General documents (PDF, DOCX, Images)
