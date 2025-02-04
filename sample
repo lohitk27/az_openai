@@ -33,6 +33,13 @@ response = client.complete(
 # Print the response
 print(response.choices[0].message.content)
 
+I have created detailed documentation covering all the necessary steps to access and use our Azure OpenAI models seamlessly. The document includes:
+
+✔️ Step-by-step setup for Python installation and .pem file configuration.
+✔️ Instructions on accessing and using deployed models with Azure OpenAI’s ChatCompletion method.
+✔️ API call guidelines with deployment names and model details.
+✔️ Various methods and example scripts to help you integrate models easily.
+
 
 import os
 from openai import AzureOpenAI
