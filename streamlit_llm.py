@@ -40,24 +40,37 @@ def get_response(model_key, prompt, output_placeholder):
     
     latency = round(end_time - start_time, 2)  # Latency in seconds
     
-    # **Update UI as soon as result is available**
-    output_placeholder.markdown(f"### {model_key} (⏳ {latency} sec)")
-    output_placeholder.text_area("Response", result.content, height=200, key=model_key)
+st.set_page_config(layout="wide")  # Ensure this is at the top
 
-# Streamlit UI
-st.set_page_config(layout="wide")  # Expands page width
-st.title("Azure OpenAI Multi-Model Chat (Streaming Mode)")
-st.write("Compare responses & latencies across multiple models (fastest response appears first).")
+st.title("Azure OpenAI Multi-Model Chat (Sorted by Latency)")
+st.write("Compare responses & latencies across multiple models (fastest first).")
 
-# User input prompt
-prompt = st.text_area("Enter your prompt:", "Explain black coffee in simple terms.", height=150)
+# **Create a container for results (this will be displayed above input)**
+results_container = st.container()
 
-if st.button("Run Prompt"):
-    st.subheader("Results")
+# **User input at the bottom**
+with st.container():
+    prompt = st.text_area("Enter your prompt:", "Explain black coffee in simple terms.")
+    run_button = st.button("Run Prompt")
 
-    # **Create placeholders for each model**
-    output_placeholders = {model: st.empty() for model in MODEL_CONFIGS.keys()}
+# **Process the prompt when button is clicked**
+if run_button and prompt:
+    with results_container:
+        st.subheader("Results")
+        st.write("Fetching responses...")
 
-    # **Trigger models in parallel and update UI as they finish**
-    for model in MODEL_CONFIGS.keys():
-        get_response(model, prompt, output_placeholders[model])
+        results = []
+
+        # **Call different models**
+        for model in MODEL_CONFIGS.keys():
+            response, latency = get_response(model, prompt)
+            results.append({"model": model, "response": response, "latency": latency})
+
+        # **Sort results by latency (fastest first)**
+        results = sorted(results, key=lambda x: x["latency"])
+
+        # **Display results above input**
+        for result in results:
+            st.write(f"### {result['model']}")
+            st.text_area("Response", result["response"], height=200)
+            st.write(f"⏳ Latency: {result['latency']} seconds")
