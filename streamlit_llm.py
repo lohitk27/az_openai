@@ -58,7 +58,27 @@ if st.button("Run Prompt"):
             st.write(f"### {model}")
             st.text_area("Response", results[model]["response"], height=200)
             st.write(f"⏳ Latency: {results[model]['latency']} seconds")
+# **Update UI as soon as result is available**
+    output_placeholder.markdown(f"### {model_key} (⏳ {latency} sec)")
+    output_placeholder.text_area("Response", result.content, height=200, key=model_key)
 
+# Streamlit UI
+st.set_page_config(layout="wide")  # Expands page width
+st.title("Azure OpenAI Multi-Model Chat (Streaming Mode)")
+st.write("Compare responses & latencies across multiple models (fastest response appears first).")
+
+# User input prompt
+prompt = st.text_area("Enter your prompt:", "Explain black coffee in simple terms.", height=150)
+
+if st.button("Run Prompt"):
+    st.subheader("Results")
+
+    # **Create placeholders for each model**
+    output_placeholders = {model: st.empty() for model in MODEL_CONFIGS.keys()}
+
+    # **Trigger models in parallel and update UI as they finish**
+    for model in MODEL_CONFIGS.keys():
+        get_response(model, prompt, output_placeholders[model])
 
 import streamlit as st
 import openai
