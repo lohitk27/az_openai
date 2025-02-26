@@ -22,7 +22,63 @@ CLAUDE_MODELS = {
     "Claude-2": "claude-2",
     "Claude-3": "claude-3"
 }
+def get_claude_response(model_key, prompt):
+    endpoint = CLAUDE_ENDPOINTS[model_key]
+    
+    headers = {
+        "Authorization": f"Bearer {CLAUDE_API_KEY}",
+        "Content-Type": "application/json",
+    }
+    
+    payload = {
+        "model": model_key,
+        "prompt": prompt,
+        "temperature": 0,
+    }
 
+    start_time = time.time()
+    
+    try:
+        response = requests.post(endpoint, json=payload, headers=headers)
+        end_time = time.time()
+        latency = round(end_time - start_time, 2)
+
+        if response.status_code == 200:
+            result = response.json().get("content", "No response")
+        else:
+            result = f"Error: {response.status_code} - {response.text}"
+    
+    except Exception as e:
+        result = f"Error: {str(e)}"
+        latency = "N/A"
+
+    return model_key, result, latency
+
+# Streamlit UI
+st.title("Claude Models Response Comparison")
+
+# Input prompt at the bottom
+st.markdown("---")
+prompt = st.text_area("Enter your prompt:", "How to make tea?", height=100)
+
+if st.button("Run Prompt"):
+    st.subheader("Generating Responses...")
+
+    results = []
+    
+    # Fetch responses for each Claude model
+    for model in CLAUDE_ENDPOINTS.keys():
+        results.append(get_claude_response(model, prompt))
+    
+    # Sort responses based on latency (fastest first)
+    results.sort(key=lambda x: x[2] if isinstance(x[2], float) else float("inf"))
+
+    # Display results in columns
+    columns = st.columns(len(results))
+
+    for col, (model_name, response_text, latency) in zip(columns, results):
+        col.markdown(f"### {model_name} (⏳ {latency} sec)")
+        col.text_area("Response", response_text, height=200, key=model_name)
 
 def get_claude_response(model_key, prompt, output_placeholder):
     llm = ChatAnthropic(
