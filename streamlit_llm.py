@@ -22,6 +22,91 @@ CLAUDE_MODELS = {
     "Claude-2": "claude-2",
     "Claude-3": "claude-3"
 }
+
+
+def get_azure_gpt_response(model_key, prompt):
+    model_info = AZURE_GPT_MODELS[model_key]
+    
+    llm = AzureChatOpenAI(
+        deployment_name=model_info["deployment_name"],
+        model_name=model_info["model_name"],
+        temperature=0
+    )
+
+    start_time = time.time()
+    response = llm.invoke(prompt)
+    end_time = time.time()
+
+    latency = round(end_time - start_time, 2)
+    result = response.content if response else "No response"
+
+    return model_key, result, latency
+
+# Function to get response from Claude models via API
+def get_claude_response(model_key, prompt):
+    endpoint = CLAUDE_ENDPOINTS[model_key]
+    
+    headers = {
+        "Authorization": f"Bearer {CLAUDE_API_KEY}",
+        "Content-Type": "application/json",
+    }
+    
+    payload = {
+        "model": model_key,
+        "prompt": prompt,
+        "temperature": 0,
+    }
+
+    start_time = time.time()
+    
+    try:
+        response = requests.post(endpoint, json=payload, headers=headers)
+        end_time = time.time()
+        latency = round(end_time - start_time, 2)
+
+        if response.status_code == 200:
+            result = response.json().get("content", "No response")
+        else:
+            result = f"Error: {response.status_code} - {response.text}"
+    
+    except Exception as e:
+        result = f"Error: {str(e)}"
+        latency = "N/A"
+
+    return model_key, result, latency
+
+# Streamlit UI setup
+st.set_page_config(layout="wide")
+st.title("🔍 AI Model Performance Comparison (Azure GPT & Claude)")
+
+# Input prompt at the bottom
+st.markdown("---")
+prompt = st.text_area("Enter your prompt:", "How to make tea?", height=100)
+
+if st.button("Run Prompt"):
+    st.subheader("Generating Responses...")
+
+    results = []
+
+    # Fetch responses from Azure GPT models
+    for model in AZURE_GPT_MODELS.keys():
+        results.append(get_azure_gpt_response(model, prompt))
+
+    # Fetch responses from Claude models
+    for model in CLAUDE_ENDPOINTS.keys():
+        results.append(get_claude_response(model, prompt))
+
+    # Sort responses based on latency (fastest first)
+    results.sort(key=lambda x: x[2] if isinstance(x[2], float) else float("inf"))
+
+    # Display results in columns
+    columns = st.columns(len(results))
+
+    for col, (model_name, response_text, latency) in zip(columns, results):
+        col.markdown(f"### {model_name} (⏳ {latency} sec)")
+        col.text_area("Response", response_text, height=300, key=model_name)
+
+
 def get_claude_response(model_key, prompt):
     endpoint = CLAUDE_ENDPOINTS[model_key]
     
