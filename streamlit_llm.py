@@ -25,32 +25,52 @@ CLAUDE_MODELS = {
 
 
 def get_claude_response(model_key, prompt, output_placeholder):
+    llm = ChatAnthropic(
+        model=CLAUDE_MODELS[model_key],
+        temperature=0,
+        timeout=None,
+        max_retries=2,
+        anthropic_api_key=ANTHROPIC_API_KEY
+    )
+
     start_time = time.time()
-
-    headers = {
-        "x-api-key": CLAUDE_API_KEY,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json"
-    }
-    payload = {
-        "model": CLAUDE_MODELS[model_key],
-        "prompt": f"\n\nHuman: {prompt}\n\nAssistant:",
-        "max_tokens_to_sample": 500
-    }
-
-    response = requests.post(CLAUDE_ENDPOINT, json=payload, headers=headers)
+    messages = [("system", "You are a helpful assistant"), ("human", prompt)]
+    response = llm.invoke(messages)
     end_time = time.time()
 
     latency = round(end_time - start_time, 2)
-
-    if response.status_code == 200:
-        result = response.json().get("completion", "No response")
-    else:
-        result = f"Error: {response.text}"
+    result = response.content if response else "No response"
 
     # Update UI with model response
     output_placeholder.markdown(f"### {model_key} (⏳ {latency} sec)")
     output_placeholder.text_area("Response", result, height=200, key=model_key)
+# def get_claude_response(model_key, prompt, output_placeholder):
+#     start_time = time.time()
+
+#     headers = {
+#         "x-api-key": CLAUDE_API_KEY,
+#         "anthropic-version": "2023-06-01",
+#         "content-type": "application/json"
+#     }
+#     payload = {
+#         "model": CLAUDE_MODELS[model_key],
+#         "prompt": f"\n\nHuman: {prompt}\n\nAssistant:",
+#         "max_tokens_to_sample": 500
+#     }
+
+#     response = requests.post(CLAUDE_ENDPOINT, json=payload, headers=headers)
+#     end_time = time.time()
+
+#     latency = round(end_time - start_time, 2)
+
+#     if response.status_code == 200:
+#         result = response.json().get("completion", "No response")
+#     else:
+#         result = f"Error: {response.text}"
+
+#     # Update UI with model response
+#     output_placeholder.markdown(f"### {model_key} (⏳ {latency} sec)")
+#     output_placeholder.text_area("Response", result, height=200, key=model_key)
 
 # Streamlit UI Layout
 st.set_page_config(layout="wide")  # Expand layout width
